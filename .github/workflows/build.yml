@@ -34,11 +34,11 @@ jobs:
 
       - name: Run unit tests on PC
         run: |
-          make test[cite: 1]
+          make test
 
       - name: Build project ELF and assets
         run: |
-          make -j$(nproc)[cite: 1]
+          make -j$(nproc)
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
