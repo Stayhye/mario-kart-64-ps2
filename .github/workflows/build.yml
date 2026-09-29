@@ -1,0 +1,55 @@
+name: Build PS2 Port
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: ps2dev/ps2dev:latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apk update || apt-get update
+          # Install python3, make, and build essentials if not already present in the container
+          if command -v apt-get &> /dev/null; then
+            apt-get install -y python3 make git build-essential md5sum
+          elif command -v apk &> /dev/null; then
+            apk add --no-cache python3 make git build-base coreutils
+          fi
+
+      - name: Set up environment variables
+        run: |
+          echo "PS2DEV=/usr/local/ps2dev" >> $GITHUB_ENV
+          echo "PS2SDK=/usr/local/ps2dev/ps2sdk" >> $GITHUB_ENV
+          echo "$PS2DEV/bin" >> $GITHUB_PATH
+
+      - name: Run unit tests on PC
+        run: |
+          make test
+
+      - name: Build project (Release)
+        run: |
+          make -j$(nproc)
+
+      - name: Build ISO image
+        run: |
+          make -j$(nproc) iso
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ps2-port-artifacts
+          path: |
+            compilaciones/*.iso
+            build/ps2/**/*.elf
+            build/ps2/SMK64ROM.BIN
