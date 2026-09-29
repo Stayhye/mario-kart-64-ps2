@@ -20,7 +20,6 @@ jobs:
       - name: Install dependencies
         run: |
           apk update || apt-get update
-          # Install python3, make, and build essentials if not already present in the container
           if command -v apt-get &> /dev/null; then
             apt-get install -y python3 make git build-essential md5sum
           elif command -v apk &> /dev/null; then
@@ -35,21 +34,17 @@ jobs:
 
       - name: Run unit tests on PC
         run: |
-          make test
+          make test[cite: 1]
 
-      - name: Build project (Release)
+      - name: Build project ELF and assets
         run: |
-          make -j$(nproc)
-
-      - name: Build ISO image
-        run: |
-          make -j$(nproc) iso
+          make -j$(nproc)[cite: 1]
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ps2-port-artifacts
+          name: ps2-port-elf-artifacts
           path: |
-            compilaciones/*.iso
             build/ps2/**/*.elf
             build/ps2/SMK64ROM.BIN
+            build/ps2/SLUS_999.99
